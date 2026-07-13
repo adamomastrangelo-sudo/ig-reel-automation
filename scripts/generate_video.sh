@@ -8,6 +8,8 @@ IMAGE="$ASSETS_DIR/image.jpg"
 AUDIO="$ASSETS_DIR/audio.mp3"
 QUOTE_FILE="$ASSETS_DIR/quote.txt"
 AUTHOR_FILE="$ASSETS_DIR/author.txt"
+QUOTE_Y_FILE="$ASSETS_DIR/quote_y.txt"
+AUTHOR_Y_FILE="$ASSETS_DIR/author_y.txt"
 CUSTOM_FONT="$ASSETS_DIR/font.ttf"
 
 for f in "$IMAGE" "$AUDIO" "$QUOTE_FILE"; do
@@ -43,14 +45,24 @@ if [ -f "$AUTHOR_FILE" ]; then
   AUTHOR_TEXT="$(cat "$AUTHOR_FILE")"
 fi
 
+QUOTE_Y=780
+if [ -f "$QUOTE_Y_FILE" ]; then
+  QUOTE_Y="$(cat "$QUOTE_Y_FILE")"
+fi
+
+AUTHOR_Y=1060
+if [ -f "$AUTHOR_Y_FILE" ]; then
+  AUTHOR_Y="$(cat "$AUTHOR_Y_FILE")"
+fi
+
 mkdir -p "$OUTPUT_DIR"
 OUTPUT="$OUTPUT_DIR/reel.mp4"
 
 FILTER="[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[bg];"
-FILTER+="[bg]drawtext=fontfile=${FONT_QUOTE}:textfile=${QUOTE_FILE}:fontcolor=white:fontsize=58:line_spacing=10:x=(w-text_w)/2:y=780[q]"
+FILTER+="[bg]drawtext=fontfile=${FONT_QUOTE}:textfile=${QUOTE_FILE}:fontcolor=white:fontsize=58:line_spacing=10:x=(w-text_w)/2:y=${QUOTE_Y}[q]"
 
 if [ -n "$AUTHOR_TEXT" ]; then
-  FILTER+=";[q]drawtext=fontfile=${FONT_AUTHOR}:textfile=${AUTHOR_FILE}:fontcolor=white:fontsize=36:x=(w-text_w)/2:y=1060[v]"
+  FILTER+=";[q]drawtext=fontfile=${FONT_AUTHOR}:textfile=${AUTHOR_FILE}:fontcolor=white:fontsize=36:x=(w-text_w)/2:y=${AUTHOR_Y}[v]"
 else
   FILTER+=";[q]null[v]"
 fi
