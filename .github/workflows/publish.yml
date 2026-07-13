@@ -5,7 +5,12 @@ on:
     # Ogni giorno alle 09:00 UTC. Modifica questa riga per cambiare la cadenza
     # (es. "0 9 * * 1,4" = lunedì e giovedì).
     - cron: "0 9 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Genera il video senza pubblicarlo (anteprima, scaricabile come artifact)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -30,8 +35,17 @@ jobs:
       - name: Genera il video
         run: bash scripts/generate_video.sh
 
+      - name: Carica video come artifact (anteprima, dry run)
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-preview
+          path: output/reel.mp4
+          retention-days: 7
+
       - name: Crea GitHub Release con il video (hosting pubblico)
         id: release
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -46,6 +60,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Pubblica su Instagram
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         env:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
@@ -56,6 +71,7 @@ jobs:
           bash scripts/publish_reel.sh
 
       - name: Aggiorna lo stato della coda testi
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

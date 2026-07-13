@@ -6,15 +6,15 @@ Pubblica automaticamente un Reel di 15 secondi (immagine fissa + testo fisso + m
 
 - **`.github/workflows/publish.yml`**: schedulato (cron), scarica il prossimo testo dal Google Sheet, genera il video con ffmpeg, lo pubblica come asset di una GitHub Release (hosting pubblico gratuito, necessario perché la Graph API scarica il video da un URL, non accetta upload diretto), poi lo pubblica su Instagram tramite le tre fasi della Graph API (creazione contenitore, polling, pubblicazione), e infine aggiorna lo stato della coda testi.
 - **`.github/workflows/refresh-token.yml`**: schedulato settimanalmente, rinnova il token long-lived Instagram (valido 60 giorni) prima che scada, e aggiorna da solo il secret del repo. Non richiede mai intervento manuale finché il workflow continua a girare.
-- **`scripts/fetch_next_caption.sh`**: scarica il Google Sheet (pubblicato come CSV), prende il prossimo testo non ancora usato, lo scrive in `assets/caption.txt` e aggiorna `state/queue_index.txt`. Quando i testi finiscono, ricomincia dal primo (loop).
-- **`scripts/generate_video.sh`**: genera `output/reel.mp4` da `assets/image.jpg` + `assets/audio.mp3` + `assets/caption.txt`, 9:16, H.264/AAC, 15 secondi.
+- **`scripts/fetch_next_caption.sh`**: scarica il Google Sheet (pubblicato come CSV), prende la prossima riga non ancora usata (colonna A = aforisma, colonna B = autore), scrive `assets/quote.txt` e `assets/author.txt` (per il video) e `assets/caption.txt` (aforisma + autore, per la caption del post), e aggiorna `state/queue_index.txt`. Quando le righe finiscono, ricomincia dalla prima (loop).
+- **`scripts/generate_video.sh`**: genera `output/reel.mp4` da `assets/image.jpg` + `assets/audio.mp3` + `assets/quote.txt` + `assets/author.txt`, 9:16, H.264/AAC, 15 secondi. L'aforisma è in font serif grande, l'autore sotto in font sans più piccolo con una linea sotto (sottolineatura simulata con un rettangolo, larghezza stimata dalla lunghezza del nome: è un'approssimazione, non un calcolo esatto della larghezza del testo renderizzato).
 - **`scripts/publish_reel.sh`**: chiama la Graph API (`graph.instagram.com`) per pubblicare un video già hostato pubblicamente.
 
 ## Coda testi (Google Sheet)
 
-I testi sovrimpressi/caption non sono più fissi: vivono in un Google Sheet, una riga per testo futuro, nell'ordine in cui vanno pubblicati.
+I testi sovrimpressi/caption non sono più fissi: vivono in un Google Sheet a due colonne, una riga per aforisma futuro, nell'ordine in cui vanno pubblicati.
 
-1. Crea un Google Sheet con una colonna sola: prima riga di intestazione (es. `testo`), poi una riga per ogni caption futura.
+1. Crea un Google Sheet con due colonne: **colonna A** = testo dell'aforisma, **colonna B** = autore. Prima riga di intestazione (es. `testo`, `autore`), poi una riga per ogni aforisma futuro.
 2. **File → Condividi → Pubblica sul web** → scegli il foglio specifico → formato **CSV** → Pubblica. Copia l'URL generato (tipo `https://docs.google.com/spreadsheets/d/e/XXXX/pub?output=csv`).
 3. In **Settings → Secrets and variables → Actions → Variables → New repository variable**, crea `SHEET_CSV_URL` con quell'URL (non è un secret: il foglio pubblicato sul web è già leggibile da chiunque abbia il link, quindi basta una variabile normale).
 
@@ -39,6 +39,9 @@ Vai su **Settings → Secrets and variables → Actions → New repository secre
 
 ### 4. Cadenza
 Modifica la riga `cron:` in `.github/workflows/publish.yml` per cambiare frequenza/orario di pubblicazione. Puoi anche lanciare un run manuale da **Actions → Genera e pubblica Reel → Run workflow**.
+
+### 5. Anteprima senza pubblicare (dry run)
+Da **Actions → Genera e pubblica Reel → Run workflow**, spunta l'opzione **dry_run**: il video viene generato ma non pubblicato su Instagram né caricato come Release, e la coda testi non avanza. Il video generato è scaricabile per 7 giorni tra gli "Artifacts" di quel run (nome `reel-preview`), utile per controllare il layout del testo prima di renderlo live.
 
 ## Se il token smette di funzionare del tutto
 
