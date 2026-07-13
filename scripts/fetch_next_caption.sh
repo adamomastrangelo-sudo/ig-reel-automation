@@ -9,7 +9,6 @@ STATE_FILE="$STATE_DIR/queue_index.txt"
 CSV_FILE="$STATE_DIR/queue.csv"
 QUOTE_FILE="$ASSETS_DIR/quote.txt"
 AUTHOR_FILE="$ASSETS_DIR/author.txt"
-UNDERLINE_FILE="$ASSETS_DIR/author_underline_width.txt"
 CAPTION_FILE="$ASSETS_DIR/caption.txt"
 
 mkdir -p "$STATE_DIR"
@@ -21,11 +20,11 @@ if [ ! -f "$STATE_FILE" ]; then
   echo "0" > "$STATE_FILE"
 fi
 
-python3 - "$CSV_FILE" "$STATE_FILE" "$QUOTE_FILE" "$AUTHOR_FILE" "$UNDERLINE_FILE" "$CAPTION_FILE" <<'PYEOF'
+python3 - "$CSV_FILE" "$STATE_FILE" "$QUOTE_FILE" "$AUTHOR_FILE" "$CAPTION_FILE" <<'PYEOF'
 import csv
 import sys
 
-csv_path, state_path, quote_path, author_path, underline_path, caption_path = sys.argv[1:7]
+csv_path, state_path, quote_path, author_path, caption_path = sys.argv[1:6]
 
 with open(csv_path, newline="", encoding="utf-8") as f:
     reader = csv.reader(f)
@@ -55,17 +54,6 @@ with open(quote_path, "w", encoding="utf-8") as f:
 
 with open(author_path, "w", encoding="utf-8") as f:
     f.write(author)
-
-# Stima (non esatta) della larghezza in pixel dell'autore, per disegnare
-# una linea sotto il nome larga quanto il testo. Font bold ~0.58 * fontsize
-# per carattere in media; fontsize dell'autore fissato a 40 in generate_video.sh.
-AUTHOR_FONTSIZE = 40
-AVG_CHAR_WIDTH_FACTOR = 0.58
-raw_width = int(len(author) * AUTHOR_FONTSIZE * AVG_CHAR_WIDTH_FACTOR)
-underline_width = max(120, min(900, raw_width)) if author else 0
-
-with open(underline_path, "w", encoding="utf-8") as f:
-    f.write(str(underline_width))
 
 with open(caption_path, "w", encoding="utf-8") as f:
     if author:
