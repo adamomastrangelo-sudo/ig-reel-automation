@@ -59,7 +59,7 @@ mkdir -p "$OUTPUT_DIR"
 OUTPUT="$OUTPUT_DIR/reel.mp4"
 
 FILTER="[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[bg];"
-FILTER+="[bg]drawtext=fontfile=${FONT_QUOTE}:textfile=${QUOTE_FILE}:fontcolor=white:fontsize=58:line_spacing=10:x=(w-text_w)/2:y=${QUOTE_Y}[q]"
+FILTER+="[bg]drawtext=fontfile=${FONT_QUOTE}:textfile=${QUOTE_FILE}:fontcolor=white:fontsize=44:line_spacing=10:x=(w-text_w)/2:y=${QUOTE_Y}[q]"
 
 if [ -n "$AUTHOR_TEXT" ]; then
   FILTER+=";[q]drawtext=fontfile=${FONT_AUTHOR}:textfile=${AUTHOR_FILE}:fontcolor=white:fontsize=36:x=(w-text_w)/2:y=${AUTHOR_Y}[v]"

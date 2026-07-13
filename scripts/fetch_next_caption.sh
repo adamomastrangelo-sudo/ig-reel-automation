@@ -54,10 +54,10 @@ quote, author = data_rows[index]
 
 # ffmpeg drawtext non va a capo da solo: il testo va spezzato qui in righe
 # che stiano nella larghezza del video (1080px) con il font/dimensione usati
-# in generate_video.sh (Open Sans bold, 58px). WRAP_CHARS e' una stima
+# in generate_video.sh (Open Sans bold, 44px). WRAP_CHARS e' una stima
 # prudente (larga) della larghezza media dei caratteri, per non sforare mai
 # i bordi anche con lettere maiuscole/larghe.
-WRAP_CHARS = 24
+WRAP_CHARS = 31
 wrapped_quote = textwrap.fill(quote, width=WRAP_CHARS)
 num_lines = len(wrapped_quote.splitlines()) or 1
 
@@ -70,7 +70,7 @@ with open(author_path, "w", encoding="utf-8") as f:
 # Posizionamento verticale dinamico: l'aforisma e l'autore vengono centrati
 # come blocco unico, cosi' un aforisma lungo (piu' righe) non finisce
 # sovrapposto al nome dell'autore.
-QUOTE_LINE_PITCH = 76
+QUOTE_LINE_PITCH = 58
 AUTHOR_LINE_HEIGHT = 46
 GAP_BETWEEN = 50
 TARGET_CENTER_Y = 900
@@ -93,9 +93,9 @@ with open(author_y_path, "w", encoding="utf-8") as f:
 
 with open(caption_path, "w", encoding="utf-8") as f:
     if author:
-        f.write(f"{quote}\n\n— {author}")
+        f.write(f"«{quote}» - {author}")
     else:
-        f.write(quote)
+        f.write(f"«{quote}»")
 
 next_index = (index + 1) % len(data_rows)
 with open(state_path, "w", encoding="utf-8") as f:
