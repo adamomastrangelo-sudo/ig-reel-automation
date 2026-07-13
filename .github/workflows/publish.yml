@@ -17,8 +17,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verifica ffmpeg
-        run: ffmpeg -version
+      - name: Installa ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
 
       - name: Genera il video
         run: bash scripts/generate_video.sh

@@ -16,6 +16,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Installa ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+
       - name: Genera asset segnaposto se mancanti
         run: |
           mkdir -p assets
