@@ -1,0 +1,50 @@
+name: Bootstrap asset di test e verifica pipeline
+
+# Workflow temporaneo, solo manuale: genera asset segnaposto (NON quelli
+# definitivi) per verificare che generate_video.sh produca un mp4 valido,
+# senza toccare alcun secret né pubblicare nulla su Instagram.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Genera asset segnaposto se mancanti
+        run: |
+          mkdir -p assets
+          if [ ! -f assets/image.jpg ]; then
+            ffmpeg -y -f lavfi -i "color=c=gray:s=1080x1920:d=1" \
+              -vf "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='PLACEHOLDER - sostituisci assets/image.jpg':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2" \
+              -frames:v 1 assets/image.jpg
+          fi
+          if [ ! -f assets/audio.mp3 ]; then
+            ffmpeg -y -f lavfi -i "sine=frequency=440:duration=20" -q:a 4 assets/audio.mp3
+          fi
+
+      - name: Genera il video con lo script reale
+        run: bash scripts/generate_video.sh
+
+      - name: Ispeziona il risultato (durata, codec, formato)
+        run: ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height -of default=noprint_wrappers=0 output/reel.mp4
+
+      - name: Carica il video come artifact per ispezione manuale
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-test
+          path: output/reel.mp4
+          retention-days: 5
+
+      - name: Committa gli asset segnaposto generati (se creati ora)
+        run: |
+          git config user.name "Adamo Mastrangelo"
+          git config user.email "adamomastrangelo@gmail.com"
+          git add assets/image.jpg assets/audio.mp3
+          git diff --cached --quiet || git commit -m "Aggiungi asset segnaposto di test (da sostituire con i definitivi)"
+          git push
