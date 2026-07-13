@@ -1,0 +1,33 @@
+name: Rinnovo token Instagram
+
+on:
+  schedule:
+    # Ogni lunedì alle 03:00 UTC. Ben entro la finestra 24h-60gg richiesta
+    # dall'endpoint di refresh: anche saltando qualche settimana c'è ampio margine.
+    - cron: "0 3 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rinnova il token long-lived
+        id: refresh
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: |
+          resp=$(curl -sS -G "https://graph.instagram.com/refresh_access_token" \
+            --data-urlencode "grant_type=ig_refresh_token" \
+            --data-urlencode "access_token=${IG_ACCESS_TOKEN}")
+          new_token=$(echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+          expires_in=$(echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin).get('expires_in',''))")
+          echo "::add-mask::$new_token"
+          echo "new_token=$new_token" >> "$GITHUB_OUTPUT"
+          echo "Nuovo token valido per altri $expires_in secondi (~$((expires_in / 86400)) giorni)."
+
+      - name: Aggiorna il secret IG_ACCESS_TOKEN
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          NEW_TOKEN: ${{ steps.refresh.outputs.new_token }}
+        run: |
+          gh secret set IG_ACCESS_TOKEN --repo "${{ github.repository }}" --body "$NEW_TOKEN"
