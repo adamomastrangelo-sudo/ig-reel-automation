@@ -1,2 +1,3 @@
 output/
 *.mp4
+state/queue.csv

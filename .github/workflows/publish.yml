@@ -22,6 +22,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-dejavu-core
 
+      - name: Scarica il prossimo testo dal Google Sheet
+        env:
+          SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
+        run: bash scripts/fetch_next_caption.sh
+
       - name: Genera il video
         run: bash scripts/generate_video.sh
 
@@ -49,3 +54,15 @@ jobs:
           CAPTION="$(cat assets/caption.txt)"
           export CAPTION
           bash scripts/publish_reel.sh
+
+      - name: Aggiorna lo stato della coda testi
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/queue_index.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "Aggiorna indice coda testi"
+            git push
+          else
+            echo "Nessuna modifica allo stato da committare."
+          fi

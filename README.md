@@ -4,17 +4,31 @@ Pubblica automaticamente un Reel di 15 secondi (immagine fissa + testo fisso + m
 
 ## Come funziona
 
-- **`.github/workflows/publish.yml`**: schedulato (cron), genera il video con ffmpeg, lo pubblica come asset di una GitHub Release (hosting pubblico gratuito, necessario perché la Graph API scarica il video da un URL, non accetta upload diretto), poi lo pubblica su Instagram tramite le tre fasi della Graph API (creazione contenitore, polling, pubblicazione).
+- **`.github/workflows/publish.yml`**: schedulato (cron), scarica il prossimo testo dal Google Sheet, genera il video con ffmpeg, lo pubblica come asset di una GitHub Release (hosting pubblico gratuito, necessario perché la Graph API scarica il video da un URL, non accetta upload diretto), poi lo pubblica su Instagram tramite le tre fasi della Graph API (creazione contenitore, polling, pubblicazione), e infine aggiorna lo stato della coda testi.
 - **`.github/workflows/refresh-token.yml`**: schedulato settimanalmente, rinnova il token long-lived Instagram (valido 60 giorni) prima che scada, e aggiorna da solo il secret del repo. Non richiede mai intervento manuale finché il workflow continua a girare.
+- **`scripts/fetch_next_caption.sh`**: scarica il Google Sheet (pubblicato come CSV), prende il prossimo testo non ancora usato, lo scrive in `assets/caption.txt` e aggiorna `state/queue_index.txt`. Quando i testi finiscono, ricomincia dal primo (loop).
 - **`scripts/generate_video.sh`**: genera `output/reel.mp4` da `assets/image.jpg` + `assets/audio.mp3` + `assets/caption.txt`, 9:16, H.264/AAC, 15 secondi.
 - **`scripts/publish_reel.sh`**: chiama la Graph API (`graph.instagram.com`) per pubblicare un video già hostato pubblicamente.
+
+## Coda testi (Google Sheet)
+
+I testi sovrimpressi/caption non sono più fissi: vivono in un Google Sheet, una riga per testo futuro, nell'ordine in cui vanno pubblicati.
+
+1. Crea un Google Sheet con una colonna sola: prima riga di intestazione (es. `testo`), poi una riga per ogni caption futura.
+2. **File → Condividi → Pubblica sul web** → scegli il foglio specifico → formato **CSV** → Pubblica. Copia l'URL generato (tipo `https://docs.google.com/spreadsheets/d/e/XXXX/pub?output=csv`).
+3. In **Settings → Secrets and variables → Actions → Variables → New repository variable**, crea `SHEET_CSV_URL` con quell'URL (non è un secret: il foglio pubblicato sul web è già leggibile da chiunque abbia il link, quindi basta una variabile normale).
+
+Ad ogni esecuzione il workflow scarica il CSV, prende la riga successiva non ancora usata e la usa come testo sovrimpresso e come caption del post pubblicato. L'avanzamento è tracciato in `state/queue_index.txt`, committato automaticamente dal workflow solo se la pubblicazione ha successo (se qualcosa fallisce prima, lo stesso testo viene ritentato al run successivo). Quando le righe finiscono, si ricomincia dalla prima.
 
 ## Setup iniziale (una tantum)
 
 ### 1. Asset fissi
-Vedi [`assets/README.md`](assets/README.md): aggiungi `image.jpg`, `audio.mp3`, `caption.txt` (e opzionalmente `font.ttf`), poi fai commit/push.
+Vedi [`assets/README.md`](assets/README.md): aggiungi `image.jpg` e `audio.mp3` (`caption.txt` non va toccato, lo gestisce l'automazione), poi fai commit/push.
 
-### 2. Secrets del repo
+### 2. Google Sheet dei testi
+Vedi [sezione dedicata sopra](#coda-testi-google-sheet): crea il foglio, pubblicalo come CSV, imposta la variabile `SHEET_CSV_URL`.
+
+### 3. Secrets del repo
 Vai su **Settings → Secrets and variables → Actions → New repository secret** e crea:
 
 | Nome | Valore |
@@ -23,7 +37,7 @@ Vai su **Settings → Secrets and variables → Actions → New repository secre
 | `IG_ACCESS_TOKEN` | il token long-lived Instagram (scade ogni 60 giorni, si rinnova da solo) |
 | `GH_PAT` | un fine-grained Personal Access Token con permesso **Secrets: Read and write** limitato a questo repo, usato dal workflow di rinnovo per aggiornare `IG_ACCESS_TOKEN` |
 
-### 3. Cadenza
+### 4. Cadenza
 Modifica la riga `cron:` in `.github/workflows/publish.yml` per cambiare frequenza/orario di pubblicazione. Puoi anche lanciare un run manuale da **Actions → Genera e pubblica Reel → Run workflow**.
 
 ## Se il token smette di funzionare del tutto
