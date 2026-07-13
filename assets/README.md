@@ -1,5 +1,8 @@
 # Asset fissi
 
+**Nota:** `image.jpg` e `audio.mp3` presenti ora sono segnaposto generati automaticamente per testare la pipeline (sfondo grigio con scritta "PLACEHOLDER", tono a 440Hz). Sostituiscili con i file veri prima di attivare la pubblicazione reale.
+
+
 Metti qui i file che l'automazione userà a ogni esecuzione (vengono committati nel repo, quindi restano stabili finché non li sostituisci):
 
 - `image.jpg` — l'immagine fissa di sfondo (qualsiasi risoluzione, viene adattata automaticamente al formato 9:16)
