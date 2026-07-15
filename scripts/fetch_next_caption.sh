@@ -72,7 +72,7 @@ with open(author_path, "w", encoding="utf-8") as f:
 # sovrapposto al nome dell'autore.
 QUOTE_LINE_PITCH = 58
 AUTHOR_LINE_HEIGHT = 46
-GAP_BETWEEN = 50
+GAP_BETWEEN = 90
 TARGET_CENTER_Y = 900
 
 quote_block_height = num_lines * QUOTE_LINE_PITCH
