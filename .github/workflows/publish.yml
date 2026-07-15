@@ -2,9 +2,11 @@ name: Genera e pubblica Reel
 
 on:
   schedule:
-    # Ogni giorno alle 09:00 UTC. Modifica questa riga per cambiare la cadenza
-    # (es. "0 9 * * 1,4" = lunedì e giovedì).
-    - cron: "0 9 * * *"
+    # Ogni giorno alle 09:17 UTC (minuto "scomodo" per evitare la coda di
+    # congestione che GitHub crea sugli orari tondi come le 09:00 in punto,
+    # usati da moltissimi altri workflow schedulati nel mondo).
+    # Modifica questa riga per cambiare la cadenza (es. "17 9 * * 1,4" = lunedì e giovedì).
+    - cron: "17 9 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
