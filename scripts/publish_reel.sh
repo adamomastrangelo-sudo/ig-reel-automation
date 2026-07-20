@@ -40,7 +40,7 @@ while [ "$status" != "FINISHED" ]; do
   fi
   sleep 10
   status_resp=$(curl -sS -G "${BASE}/${creation_id}" \
-    --data-urlencode "fields=status_code" \
+    --data-urlencode "fields=status_code,status" \
     --data-urlencode "access_token=${IG_ACCESS_TOKEN}")
   status=$(echo "$status_resp" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status_code',''))")
   echo "Tentativo $attempts: stato = $status"
