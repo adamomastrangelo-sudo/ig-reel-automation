@@ -2,11 +2,14 @@ name: Genera e pubblica Reel
 
 on:
   schedule:
-    # Ogni giorno alle 09:17 UTC (minuto "scomodo" per evitare la coda di
-    # congestione che GitHub crea sugli orari tondi come le 09:00 in punto,
-    # usati da moltissimi altri workflow schedulati nel mondo).
-    # Modifica questa riga per cambiare la cadenza (es. "17 9 * * 1,4" = lunedì e giovedì).
-    - cron: "17 9 * * *"
+    # Ogni giorno alle 05:56 UTC, cioe' le 07:56 ora italiana (con l'ora legale
+    # in vigore, UTC+2). GitHub Actions usa sempre UTC e non segue il cambio
+    # legale/solare italiano: in inverno (UTC+1) questo orario corrisponderebbe
+    # alle 06:56 italiane, un'ora prima. Se vuoi restare fissi sulle 07:56
+    # italiane tutto l'anno, va cambiato manualmente a "56 6 * * *" al cambio
+    # dell'ora (fine ottobre / fine marzo).
+    # Modifica questa riga per cambiare la cadenza (es. "56 5 * * 1,4" = lunedì e giovedì).
+    - cron: "56 5 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
